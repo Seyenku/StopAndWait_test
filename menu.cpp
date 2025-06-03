@@ -47,27 +47,25 @@ MenuManager::~MenuManager() {
 }
 
 void MenuManager::initializeMenus() {
-    // Инициализация главного меню
     mainMenuItems = {
         MenuItem(1, "Запустить все тесты", "Выполнить полный набор тестов"),
-        MenuItem(-1, "", "UNIT ТЕСТЫ", false), // Разделитель
+        MenuItem(-1, "", "UNIT ТЕСТЫ", false),
         MenuItem(2, "Все UNIT тесты", "Модульные тесты компонентов"),
         MenuItem(3, "Тесты пакетов", "Проверка создания и обработки пакетов"),
         MenuItem(4, "Тесты отправителя", "Логика отправки данных"),
         MenuItem(5, "Тесты получателя", "Логика приема данных"),
         MenuItem(6, "Тесты канала", "Работа канала связи и ACK"),
-        MenuItem(-1, "", "ИНТЕГРАЦИОННЫЕ ТЕСТЫ", false), // Разделитель
+        MenuItem(-1, "", "ИНТЕГРАЦИОННЫЕ ТЕСТЫ", false),
         MenuItem(7, "Интеграционные тесты", "Комплексные тесты взаимодействия"),
         MenuItem(8, "Тесты передачи", "Полный цикл передачи данных"),
         MenuItem(9, "Восстановление потерь", "Обработка потерянных пакетов"),
         MenuItem(10, "Тесты таймаутов", "Проверка временных ограничений"),
         MenuItem(11, "Тесты производительности", "Измерение скорости и эффективности"),
-        MenuItem(-1, "", "НАСТРОЙКИ", false), // Разделитель
+        MenuItem(-1, "", "НАСТРОЙКИ", false),
         MenuItem(12, "Логирование", "Управление уровнем детализации логов"),
         MenuItem(0, "Выход", "Завершить программу")
     };
 
-    // Инициализация меню логирования
     loggingMenuItems = {
         MenuItem(1, "NONE", "Без вывода логов"),
         MenuItem(2, "BASIC", "Только результаты тестов"),
@@ -101,7 +99,7 @@ void MenuManager::resetColor() {
 
 #ifdef _WIN32
     HANDLE hConsole = GetStdHandle(STD_OUTPUT_HANDLE);
-    SetConsoleTextAttribute(hConsole, 7); // Белый цвет
+    SetConsoleTextAttribute(hConsole, 7);
 #else
     cout << "\033[0m";
 #endif
@@ -171,7 +169,7 @@ void MenuManager::printFooter() {
 
 int MenuManager::getInteractiveChoice(const std::vector<MenuItem>& items, const std::string& title) {
     int index = 0;
-    // Найти первый активный элемент
+    // первый активный элемент
     while (index < items.size() && !items[index].isActive) {
         index++;
     }
@@ -194,7 +192,7 @@ int MenuManager::getInteractiveChoice(const std::vector<MenuItem>& items, const 
 #ifdef _WIN32
         int key = _getch();
 
-        if (key == 224) { // стрелочная клавиша в Windows
+        if (key == 224) {
             int arrow = _getch();
             if (arrow == 72) { // вверх
                 do {
@@ -218,7 +216,6 @@ int MenuManager::getInteractiveChoice(const std::vector<MenuItem>& items, const 
 }
 
 void MenuManager::displayMainMenu() {
-    // Используем интерактивное меню вместо обычного
     int choice = getInteractiveChoice(mainMenuItems, "ТЕСТИРОВАНИЕ STOP-AND-WAIT ПРОТОКОЛА");
     lastChoice = choice;
 }
@@ -227,7 +224,6 @@ void MenuManager::displayLoggingMenu(Logger& logger) {
     clearScreen();
     printHeader("НАСТРОЙКИ ЛОГИРОВАНИЯ");
 
-    // Показать текущий уровень
     cout << "\nТекущий уровень логирования: ";
     cout << getLogLevelString(logger.getLevel()) << "\n";
     resetColor();
@@ -285,16 +281,16 @@ void MenuManager::showTestResults(const string& testName, bool passed, const str
 
     if (passed) {
         setColor(COLOR_BRIGHT_GREEN);
-        cout << "\n✅ [УСПЕШНО] " << testName << "\n";
+        cout << "\n[SUCCESS] " << testName << "\n";
     }
     else {
         setColor(COLOR_BRIGHT_RED);
-        cout << "\n❌ [ОШИБКА] " << testName << "\n";
+        cout << "\n[ERROR] " << testName << "\n";
     }
 
     if (!details.empty()) {
         setColor(COLOR_WHITE);
-        cout << "\nДетали: " << details << "\n";
+        cout << "\nDetails: " << details << "\n";
     }
 
     resetColor();
@@ -311,12 +307,10 @@ void MenuManager::waitForKeyPress(const string& message) {
 }
 
 void MenuManager::showWelcomeScreen() {
-    // Убрана заставка - просто очищаем экран
     clearScreen();
 }
 
 void MenuManager::showExitScreen() {
-    // Убрана конечная заставка - просто очищаем экран
     clearScreen();
     cout << "До свидания!\n";
     resetColor();
@@ -339,7 +333,6 @@ void MenuManager::showProgressBar(int progress, int total, const string& text) {
     cout.flush();
 }
 
-// Глобальные функции для совместимости с существующим кодом
 static MenuManager globalMenu;
 
 void display_main_menu() {

@@ -11,7 +11,6 @@ using namespace std;
 int main() {
     setlocale(LC_ALL, "Russian");
 
-    // Показать экран приветствия (теперь просто очистка экрана)
     show_welcome_screen();
 
     Logger logger;
@@ -74,17 +73,14 @@ int main() {
             show_exit_screen();
             break;
         default:
-            // Интерактивное меню не должно возвращать неверных значений
             break;
         }
 
-        // Пауза после выполнения тестов (только для тестов, не для настроек)
+        // Пауза после тестов (не для настроек)
         if (choice >= 1 && choice <= 11) {
             cout << "\n Тесты завершены. Нажмите любую клавишу для возврата в меню...";
 #ifdef _WIN32
             _getch();
-#else
-            system("read -n 1 -s");
 #endif
         }
 

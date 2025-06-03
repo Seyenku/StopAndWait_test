@@ -13,7 +13,6 @@
 
 using namespace std;
 
-// Перечисления состояний
 enum class SenderState {
     READY,
     WAITING,

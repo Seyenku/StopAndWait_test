@@ -1,11 +1,11 @@
 #include "testsUnit.h"
 #include "logger.h"
 
-// 1. ТЕСТЫ ДЛЯ ФУНКЦИИ isPacketLost()
+// тесты мин и макс потерь
 void test_packet_loss_boundary_values(TestRunner& runner, Logger& logger) {
     logger.logBasic("\n--- Тестирование граничных значений isPacketLost() ---");
 
-    // Тест 1: lossProbability = 0.0 (пакеты никогда не теряются)
+    // Тест 1
     Channel channel_no_loss(0.0f);
     bool any_lost = false;
     logger.logDetailed("Тестирование lossProbability = 0.0 (100 попыток)");
@@ -18,7 +18,7 @@ void test_packet_loss_boundary_values(TestRunner& runner, Logger& logger) {
     }
     runner.assert_test(!any_lost, "Граничное значение: lossProbability = 0.0");
 
-    // Тест 2: lossProbability = 1.0 (пакеты всегда теряются)
+    // Тест 2
     Channel channel_all_loss(1.0f);
     bool all_lost = true;
     logger.logDetailed("Тестирование lossProbability = 1.0 (100 попыток)");
@@ -49,7 +49,7 @@ void test_packet_loss_distribution(TestRunner& runner, Logger& logger) {
 
     double actual_loss_rate = (double)lost_count / total_tests;
     double expected_loss_rate = 0.5;
-    double tolerance = 0.05; // 5% допуск
+    double tolerance = 0.05;
 
     logger.logDetailed("Потеряно пакетов: " + to_string(lost_count) + "/" + to_string(total_tests));
     logger.logDetailed("Фактический коэффициент потерь: " + to_string(actual_loss_rate));
@@ -65,7 +65,7 @@ void test_packet_loss_distribution(TestRunner& runner, Logger& logger) {
 void test_packet_loss_invalid_input(TestRunner& runner, Logger& logger) {
     logger.logBasic("\n--- Тестирование некорректных входных данных isPacketLost() ---");
 
-    // Тест с отрицательной вероятностью потерь
+    // Тест с отриц вероятностью
     logger.logDetailed("Тестирование lossProbability < 0");
     bool exception_caught_negative = false;
     try {
@@ -101,14 +101,13 @@ void test_packet_loss_invalid_input(TestRunner& runner, Logger& logger) {
     runner.assert_test(exception_caught_excessive,
         "Обработка некорректных данных: lossProbability > 1");
 
-    // Тест граничных корректных значений
+
     logger.logDetailed("Тестирование граничных корректных значений");
     bool boundary_test_passed = true;
     try {
         Channel channel_zero(0.0f);
         Channel channel_one(1.0f);
 
-        // Должны работать без исключений
         channel_zero.isPacketLost();
         channel_one.isPacketLost();
 
@@ -123,11 +122,11 @@ void test_packet_loss_invalid_input(TestRunner& runner, Logger& logger) {
         "Корректная обработка граничных значений: 0.0 и 1.0");
 }
 
-// 2. ТЕСТЫ ДЛЯ СТРУКТУРЫ Packet
+// Тесты для Packet
 void test_packet_initialization(TestRunner& runner, Logger& logger) {
     logger.logBasic("\n--- Тестирование инициализации Packet ---");
 
-    // Тест 1: Инициализация по умолчанию
+    // Инициализация
     Packet default_packet;
     logger.logDetailed("Создан пакет по умолчанию");
     logger.logDebug("sequence_number: " + to_string(default_packet.sequence_number));
@@ -142,7 +141,7 @@ void test_packet_initialization(TestRunner& runner, Logger& logger) {
 void test_packet_data_operations(TestRunner& runner, Logger& logger) {
     logger.logBasic("\n--- Тестирование операций с данными Packet ---");
 
-    // Тест 2: Запись и чтение данных
+    // Запись и чтение
     string test_message = "Тестовое сообщение";
     Packet packet(1, test_message);
 
@@ -159,7 +158,7 @@ void test_packet_data_operations(TestRunner& runner, Logger& logger) {
 void test_packet_buffer_overflow(TestRunner& runner, Logger& logger) {
     logger.logBasic("\n--- Тестирование переполнения буфера Packet ---");
 
-    // Тест 3: Превышение размера буфера
+    // Превышение размера буфера
     string long_message(300, 'A'); // 300 символов 'A'
     Packet packet(2, long_message);
 
@@ -174,7 +173,7 @@ void test_packet_buffer_overflow(TestRunner& runner, Logger& logger) {
         "Packet: корректное завершение строки при усечении");
 }
 
-// 3. ТЕСТЫ ДЛЯ ОТПРАВИТЕЛЯ (Sender)
+// Тесты для Sender
 void test_sender_initial_state(TestRunner& runner, Logger& logger) {
     logger.logBasic("\n--- Тестирование начального состояния Sender ---");
 
@@ -194,7 +193,7 @@ void test_sender_initial_state(TestRunner& runner, Logger& logger) {
 void test_sender_state_transitions(TestRunner& runner, Logger& logger) {
     logger.logBasic("\n--- Тестирование переходов состояний Sender ---");
 
-    // Переход 1: READY -> WAITING (при отправке данных)
+    // READY -> WAITING при отправке данных
     {
         logger.logDetailed("Тест 1: Переход READY -> WAITING при отправке данных");
         Channel channel(0.0f);
@@ -211,7 +210,7 @@ void test_sender_state_transitions(TestRunner& runner, Logger& logger) {
             "Sender: переход READY -> WAITING при отправке данных");
     }
 
-    // Переход 2: WAITING -> READY (при получении корректного ACK)
+    // WAITING -> READY при получении ACK
     {
         logger.logDetailed("Тест 2: Переход WAITING -> READY при получении корректного ACK");
         Channel channel(0.0f);
@@ -245,7 +244,7 @@ void test_sender_state_transitions(TestRunner& runner, Logger& logger) {
             "Sender: номер последовательности изменился при корректном ACK");
     }
 
-    // Переход 3: WAITING -> TIMEOUT -> WAITING (при таймауте)
+    // WAITING -> TIMEOUT -> WAITING (при таймауте)
     {
         logger.logDetailed("Тест 3: Переход WAITING -> TIMEOUT -> WAITING при таймауте");
         Channel channel(0.0f);
@@ -257,7 +256,7 @@ void test_sender_state_transitions(TestRunner& runner, Logger& logger) {
 
         int seq_before_timeout = sender.getCurrentSeqNumber();
 
-        // Ручной вызов handleTimeout для имитации
+        // Ручной вызов handleTimeout
         logger.logDebug("Имитация таймаута...");
         sender.handleTimeout();
 
@@ -273,7 +272,7 @@ void test_sender_state_transitions(TestRunner& runner, Logger& logger) {
             "Sender: пакет повторно отправлен после таймаута");
     }
 
-    // Переход 4: WAITING -> WAITING (при получении неправильного ACK)
+    // WAITING -> WAITING при получении неправильного ACK
     {
         logger.logDetailed("Тест 4: Состояние WAITING сохраняется при неправильном ACK");
         Channel channel(0.0f);
@@ -302,7 +301,7 @@ void test_sender_state_transitions(TestRunner& runner, Logger& logger) {
             "Sender: номер последовательности не изменился при неправильном ACK");
     }
 
-    // Переход 5: Попытка отправки в состоянии WAITING (должна игнорироваться)
+    // отправка в WAITING должна игнорироваться
     {
         logger.logDetailed("Тест 5: Попытка отправки данных в состоянии WAITING");
         Channel channel(0.0f);
@@ -327,7 +326,7 @@ void test_sender_state_transitions(TestRunner& runner, Logger& logger) {
             "Sender: новый пакет не отправлен в состоянии WAITING");
     }
 
-    // Переход 6: Множественная обработка ACK в состоянии READY
+    // обработка ACK в READY должна игнорироваться
     {
         logger.logDetailed("Тест 6: Обработка ACK в состоянии READY (должна игнорироваться)");
         Channel channel(0.0f);
@@ -336,7 +335,6 @@ void test_sender_state_transitions(TestRunner& runner, Logger& logger) {
         runner.assert_test(sender.getState() == SenderState::READY,
             "Sender: начальное состояние READY для теста ACK");
 
-        // Отправляем ACK в канал в состоянии READY
         Acknowledgement spurious_ack(0);
         channel.sendAck(spurious_ack);
         logger.logDebug("ACK отправлен в состоянии READY");
@@ -354,7 +352,7 @@ void test_sender_state_transitions(TestRunner& runner, Logger& logger) {
             "Sender: номер последовательности не изменился при ACK в READY");
     }
 
-    // Переход 7: Полный цикл взаимодействия (READY -> WAITING -> READY)
+    // Полный цикл READY -> WAITING -> READY
     {
         logger.logDetailed("Тест 7: Полный цикл взаимодействия отправителя");
         Channel channel(0.0f);
@@ -408,11 +406,9 @@ void test_sender_sequence_number_management(TestRunner& runner, Logger& logger) 
     int initial_seq = sender.getCurrentSeqNumber();
     logger.logDetailed("Начальный номер последовательности: " + to_string(initial_seq));
 
-    // Отправляем пакет
     sender.sendData("Тест");
     logger.logDebug("Пакет отправлен");
 
-    // Имитируем получение ACK
     if (channel.hasPacket()) {
         Packet packet = channel.receivePacket();
         logger.logDebug("Получен пакет с seq_number: " + to_string(packet.sequence_number));
@@ -421,7 +417,6 @@ void test_sender_sequence_number_management(TestRunner& runner, Logger& logger) 
         logger.logDebug("Отправлен ACK с номером: " + to_string(ack.ack_number));
     }
 
-    // Обрабатываем ACK
     sender.receiveAck();
 
     int new_seq = sender.getCurrentSeqNumber();
@@ -432,7 +427,7 @@ void test_sender_sequence_number_management(TestRunner& runner, Logger& logger) 
         "Sender: корректное изменение номера последовательности");
 }
 
-// 4. ТЕСТЫ ДЛЯ ПОЛУЧАТЕЛЯ (Receiver)
+// тесты для Receiver
 void test_receiver_initial_state(TestRunner& runner, Logger& logger) {
     logger.logBasic("\n--- Тестирование начального состояния Receiver ---");
 
@@ -452,7 +447,7 @@ void test_receiver_initial_state(TestRunner& runner, Logger& logger) {
 void test_receiver_state_transitions(TestRunner& runner, Logger& logger) {
     logger.logBasic("\n--- Тестирование переходов состояний Receiver ---");
 
-    // Переход 1: WAITING -> ACK_SENT (при получении корректного пакета)
+    // WAITING -> ACK_SENT
     {
         logger.logDetailed("Тест 1: Переход WAITING -> ACK_SENT при получении корректного пакета");
         Channel channel(0.0f);
@@ -492,7 +487,7 @@ void test_receiver_state_transitions(TestRunner& runner, Logger& logger) {
         }
     }
 
-    // Переход 2: WAITING -> ACK_SENT (при получении дубликата - состояние меняется, но ожидаемый номер не изменяется)
+    // WAITING -> ACK_SENT состояние меняется, ожидаемый номер не меняется
     {
         logger.logDetailed("Тест 2: Переход WAITING -> ACK_SENT при получении дубликата");
         Channel channel(0.0f);
@@ -503,13 +498,12 @@ void test_receiver_state_transitions(TestRunner& runner, Logger& logger) {
         channel.sendPacket(first_packet);
         receiver.receivePacket();
 
-        // Возвращаем состояние к WAITING для чистоты теста
+        // делаем обратно WAITING
         receiver.setState(ReceiverState::WAITING);
         int expected_seq_after_first = receiver.getExpectedSeqNumber();
 
         logger.logDebug("Ожидаемый seq после первого пакета: " + to_string(expected_seq_after_first));
 
-        // Теперь отправляем дубликат
         Packet duplicate_packet(0, "Дубликат пакета");
         channel.sendPacket(duplicate_packet);
         logger.logDebug("Отправлен дубликат с seq_number: " + to_string(duplicate_packet.sequence_number));
@@ -540,14 +534,14 @@ void test_receiver_state_transitions(TestRunner& runner, Logger& logger) {
         }
     }
 
-    // Переход 3: WAITING -> ACK_SENT (при получении пакета с неправильным номером последовательности)
+    //  WAITING -> ACK_SENT при получении пакета с неправильным seq
     {
         logger.logDetailed("Тест 3: Переход WAITING -> ACK_SENT при получении пакета с неправильным seq_number");
         Channel channel(0.0f);
         Receiver receiver(channel);
 
         int expected_seq = receiver.getExpectedSeqNumber();
-        int wrong_seq = 1 - expected_seq; // Неправильный номер последовательности
+        int wrong_seq = 1 - expected_seq;
 
         Packet wrong_packet(wrong_seq, "Пакет с неправильным номером");
         channel.sendPacket(wrong_packet);
@@ -578,13 +572,13 @@ void test_receiver_state_transitions(TestRunner& runner, Logger& logger) {
         }
     }
 
-    // Переход 4: Поведение в состоянии ACK_SENT (должно обрабатывать пакеты)
+    // Поведение в ACK_SENT
     {
         logger.logDetailed("Тест 4: Обработка пакетов в состоянии ACK_SENT");
         Channel channel(0.0f);
         Receiver receiver(channel);
 
-        // Приводим получателя в состояние ACK_SENT
+        // ставим ACK_SENT
         Packet first_packet(0, "Первый пакет");
         channel.sendPacket(first_packet);
         receiver.receivePacket();
@@ -592,7 +586,7 @@ void test_receiver_state_transitions(TestRunner& runner, Logger& logger) {
         runner.assert_test(receiver.getState() == ReceiverState::ACK_SENT,
             "Receiver: предварительное состояние ACK_SENT установлено");
 
-        // Отправляем второй пакет в состоянии ACK_SENT
+        // Отправляем 2 пакет в состоянии ACK_SENT
         Packet second_packet(1, "Второй пакет");
         channel.sendPacket(second_packet);
         logger.logDebug("Отправлен второй пакет в состоянии ACK_SENT");
@@ -612,20 +606,19 @@ void test_receiver_state_transitions(TestRunner& runner, Logger& logger) {
             "Receiver: ожидаемый номер изменился при корректном втором пакете");
     }
 
-    // Переход 5: Поведение в состоянии RECEIVED (если устанавливается вручную)
+    // Поведение в RECEIVED
     {
         logger.logDetailed("Тест 5: Обработка пакетов в состоянии RECEIVED");
         Channel channel(0.0f);
         Receiver receiver(channel);
 
-        // Устанавливаем состояние RECEIVED вручную
         receiver.setState(ReceiverState::RECEIVED);
         logger.logDebug("Установлено состояние RECEIVED вручную");
 
         runner.assert_test(receiver.getState() == ReceiverState::RECEIVED,
             "Receiver: состояние RECEIVED установлено");
 
-        // Отправляем пакет в состоянии RECEIVED
+        // Отправляем пакет
         Packet test_packet(0, "Тест в RECEIVED");
         channel.sendPacket(test_packet);
 
@@ -642,7 +635,7 @@ void test_receiver_state_transitions(TestRunner& runner, Logger& logger) {
             "Receiver: ожидаемый номер изменился при корректном пакете в RECEIVED");
     }
 
-    // Переход 6: Полный цикл взаимодействия получателя
+    // Полный цикл
     {
         logger.logDetailed("Тест 6: Полный цикл взаимодействия получателя");
         Channel channel(0.0f);
@@ -661,7 +654,7 @@ void test_receiver_state_transitions(TestRunner& runner, Logger& logger) {
             receiver.getExpectedSeqNumber() == 1,
             "Receiver: после первого пакета - ACK_SENT, ожидаем 1");
 
-        // Возвращаем в WAITING для следующего пакета
+        // Возвращаем WAITING
         receiver.setState(ReceiverState::WAITING);
 
         // Второй пакет
@@ -674,7 +667,6 @@ void test_receiver_state_transitions(TestRunner& runner, Logger& logger) {
             "Receiver: после второго пакета - ACK_SENT, ожидаем 0 (цикл завершен)");
     }
 
-    // Переход 7: Обработка отсутствия пакетов в канале
     {
         logger.logDetailed("Тест 7: Поведение при отсутствии пакетов в канале");
         Channel channel(0.0f);
@@ -702,7 +694,6 @@ void test_receiver_state_transitions(TestRunner& runner, Logger& logger) {
             "Receiver: ACK не отправлен при отсутствии пакетов");
     }
 
-    // Переход 8: Последовательная обработка множественных пакетов
     {
         logger.logDetailed("Тест 8: Последовательная обработка множественных пакетов");
         Channel channel(0.0f);
@@ -727,7 +718,7 @@ void test_receiver_state_transitions(TestRunner& runner, Logger& logger) {
                 channel.receiveAck(); // Очищаем ACK из канала
             }
 
-            // Сбрасываем состояние для следующей итерации
+            // Сбрасываем состояние
             receiver.setState(ReceiverState::WAITING);
         }
 
@@ -744,12 +735,10 @@ void test_receiver_duplicate_detection(TestRunner& runner, Logger& logger) {
     Channel channel(0.0f);
     Receiver receiver(channel);
 
-    // Отправляем первый пакет
     Packet packet1(0, "Первый пакет");
     channel.sendPacket(packet1);
     logger.logDetailed("Отправлен первый пакет с seq_number: 0");
 
-    // Получаем первый пакет
     receiver.receivePacket();
     int expected_after_first = receiver.getExpectedSeqNumber();
     logger.logDebug("Ожидаемый seq_number после первого пакета: " + to_string(expected_after_first));
@@ -768,28 +757,28 @@ void test_receiver_duplicate_detection(TestRunner& runner, Logger& logger) {
         "Receiver: ожидаемый номер не изменился после дубликата");
 }
 
-// 5. ТЕСТЫ СТРУКТУРЫ Acknowledgement
+// Тесты Ask
 void test_acknowledgement_initialization(TestRunner& runner, Logger& logger) {
     cout << "\n--- Тестирование инициализации Acknowledgement ---" << endl;
 
-    // Тест инициализации по умолчанию
+    // инициализация по умолчанию
     Acknowledgement default_ack;
     runner.assert_test(default_ack.ack_number == 0,
         "Acknowledgement: инициализация по умолчанию");
 
-    // Тест инициализации с параметром
+    // с параметром
     Acknowledgement param_ack(5);
     runner.assert_test(param_ack.ack_number == 5,
         "Acknowledgement: инициализация с параметром");
 }
 
-// 6. ТЕСТЫ КАНАЛА (Channel)
+// Тесты Channel
 void test_channel_basic_operations(TestRunner& runner, Logger& logger) {
     cout << "\n--- Тестирование базовых операций Channel ---" << endl;
 
-    Channel channel(0.0f); // Без потерь
+    Channel channel(0.0f);
 
-    // Тест отправки и получения пакета
+    // Тест отправки и получения
     Packet test_packet(1, "Тест");
     channel.sendPacket(test_packet);
 
@@ -802,7 +791,7 @@ void test_channel_basic_operations(TestRunner& runner, Logger& logger) {
     runner.assert_test(string(received.data) == string(test_packet.data),
         "Channel: корректная передача данных");
 
-    // Тест отправки и получения ACK
+    // отправка и получение ACK
     Acknowledgement test_ack(2);
     channel.sendAck(test_ack);
 

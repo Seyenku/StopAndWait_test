@@ -1,25 +1,20 @@
 #include "testIntegration.h"
 
-// ============================================================================
-// УСПЕШНАЯ ПЕРЕДАЧА БЕЗ ПОТЕРЬ
-// ============================================================================
 
+// успешная передача без потерь
 void test_successful_single_packet_transmission(TestRunner& runner, Logger& logger) {
     logger.logDetailed("Тест: Успешная передача одного пакета без потерь");
 
-    Channel channel(0.0f); // Без потерь
+    Channel channel(0.0f);
     Sender sender(channel, 1000);
     Receiver receiver(channel);
 
-    // Запуск компонентов
     sender.start();
     receiver.start();
 
-    // Отправка одного пакета
     string test_message = "Hello, World!";
     sender.sendData(test_message);
 
-    // Ожидание завершения передачи
     bool transmission_complete = IntegrationTestHelper::wait_for_transmission_complete(
         sender, receiver, 3000);
 
@@ -39,7 +34,7 @@ void test_successful_single_packet_transmission(TestRunner& runner, Logger& logg
 void test_successful_multiple_packets_transmission(TestRunner& runner, Logger& logger) {
     logger.logDetailed("Тест: Успешная передача нескольких пакетов без потерь");
 
-    Channel channel(0.0f); // Без потерь
+    Channel channel(0.0f);
     Sender sender(channel, 1000);
     Receiver receiver(channel);
 
@@ -54,7 +49,7 @@ void test_successful_multiple_packets_transmission(TestRunner& runner, Logger& l
     int packets_transmitted = 0;
 
     for (const auto& message : messages) {
-        // Ждем, пока отправитель будет готов
+        // Ждем когда отправитель будет готов
         while (!sender.isReady()) {
             this_thread::sleep_for(chrono::milliseconds(10));
             auto current_time = chrono::steady_clock::now();
@@ -68,7 +63,7 @@ void test_successful_multiple_packets_transmission(TestRunner& runner, Logger& l
             sender.sendData(message);
             packets_transmitted++;
 
-            // Ждем завершения передачи этого пакета
+            // Ждем завершения передачи пакета
             IntegrationTestHelper::wait_for_transmission_complete(sender, receiver, 2000);
         }
     }
@@ -85,15 +80,12 @@ void test_successful_multiple_packets_transmission(TestRunner& runner, Logger& l
         to_string(messages.size()));
 }
 
-// ============================================================================
-// ПЕРЕДАЧА С ПОТЕРЕЙ ПАКЕТОВ И ACK
-// ============================================================================
-
+// Передача с потерей пакетов и аск
 void test_packet_loss_with_retransmission(TestRunner& runner, Logger& logger) {
     logger.logDetailed("Тест: Потеря пакета с повторной передачей");
 
-    Channel channel(0.7f); // Высокая вероятность потерь для гарантированной потери
-    Sender sender(channel, 500); // Короткий таймаут для быстрого тестирования
+    Channel channel(0.7f);
+    Sender sender(channel, 500);
     Receiver receiver(channel);
 
     sender.start();
@@ -104,7 +96,7 @@ void test_packet_loss_with_retransmission(TestRunner& runner, Logger& logger) {
 
     sender.sendData(test_message);
 
-    // Мониторим состояния для подтверждения повторных передач
+    // Мониторим для обнаружения повторных передач
     bool timeout_occurred = false;
     int state_changes = 0;
     SenderState last_state = sender.getState();
@@ -223,7 +215,7 @@ void test_multiple_losses_with_retransmission(TestRunner& runner, Logger& logger
             total_retransmissions += message_retransmissions;
         }
 
-        // Небольшая пауза между пакетами
+        // пауза между пакетами
         this_thread::sleep_for(chrono::milliseconds(100));
     }
 
@@ -251,7 +243,7 @@ void test_alternating_packet_ack_loss(TestRunner& runner, Logger& logger) {
     receiver.start();
 
     // Тест 1: Сначала потеря пакета, потом нормальная передача
-    channel.setLossProbability(0.9f); // Высокая вероятность потери пакета
+    channel.setLossProbability(0.9f);
     sender.sendData("First message");
 
     // Ждем первой попытки и таймаута
@@ -267,7 +259,7 @@ void test_alternating_packet_ack_loss(TestRunner& runner, Logger& logger) {
         "Первое сообщение передано после первоначальной потери");
 
     // Тест 2: Нормальная отправка, потом потеря ACK
-    channel.setLossProbability(0.5f); // Умеренная вероятность для потери ACK
+    channel.setLossProbability(0.5f);
     sender.sendData("Second message");
 
     bool second_transmission_complete = IntegrationTestHelper::wait_for_transmission_complete(
@@ -280,15 +272,12 @@ void test_alternating_packet_ack_loss(TestRunner& runner, Logger& logger) {
     receiver.stop();
 }
 
-// ============================================================================
-// ТЕСТЫ С РАЗЛИЧНЫМИ ТАЙМАУТАМИ
-// ============================================================================
-
+// Тесты с различными таймаутами
 void test_very_short_timeout(TestRunner& runner, Logger& logger) {
     logger.logDetailed("Тест: Очень короткий таймаут");
 
-    Channel channel(0.3f); // Умеренные потери
-    Sender sender(channel, 50); // Очень короткий таймаут - 50мс
+    Channel channel(0.3f); // Низкие потери
+    Sender sender(channel, 50); // Очень короткий таймаут
     Receiver receiver(channel);
 
     sender.start();
@@ -333,8 +322,8 @@ void test_very_short_timeout(TestRunner& runner, Logger& logger) {
 void test_very_long_timeout(TestRunner& runner, Logger& logger) {
     logger.logDetailed("Тест: Очень длинный таймаут");
 
-    Channel channel(0.8f); // Высокие потери для гарантированного таймаута
-    Sender sender(channel, 5000); // Очень длинный таймаут - 5 секунд
+    Channel channel(0.8f); // Высокие потери
+    Sender sender(channel, 5000); // Очень длинный таймаут
     Receiver receiver(channel);
 
     sender.start();
@@ -414,7 +403,7 @@ void test_optimal_timeout_determination(TestRunner& runner, Logger& logger) {
     runner.assert_test(performance_results.size() >= 3,
         "Получены результаты для нескольких значений таймаута");
 
-    // Найти оптимальный таймаут (минимальное время передачи)
+    // поиск оптимального таймаута (мин время передачи)
     if (!performance_results.empty()) {
         auto optimal = min_element(performance_results.begin(), performance_results.end(),
             [](const pair<int, double>& a, const pair<int, double>& b) {
@@ -435,10 +424,7 @@ void test_optimal_timeout_determination(TestRunner& runner, Logger& logger) {
     }
 }
 
-// ============================================================================
-// ДОПОЛНИТЕЛЬНЫЕ СЦЕНАРИИ
-// ============================================================================
-
+// Доп тесты
 void test_sender_receiver_synchronization(TestRunner& runner, Logger& logger) {
     logger.logDetailed("Тест: Синхронизация отправителя и получателя");
 
@@ -446,7 +432,7 @@ void test_sender_receiver_synchronization(TestRunner& runner, Logger& logger) {
     Sender sender(channel, 1000);
     Receiver receiver(channel);
 
-    // Тестируем синхронизацию последовательных номеров
+    // Тест синхр последовательных номеров
     runner.assert_test(sender.getCurrentSeqNumber() == 0,
         "Начальный номер отправителя: 0");
     runner.assert_test(receiver.getExpectedSeqNumber() == 0,
@@ -455,7 +441,7 @@ void test_sender_receiver_synchronization(TestRunner& runner, Logger& logger) {
     sender.start();
     receiver.start();
 
-    // Отправляем несколько пакетов и проверяем синхронизацию
+    // Отправка нескольких пакетов
     for (int i = 0; i < 3; i++) {
         int initial_sender_seq = sender.getCurrentSeqNumber();
         int initial_receiver_seq = receiver.getExpectedSeqNumber();
@@ -464,8 +450,7 @@ void test_sender_receiver_synchronization(TestRunner& runner, Logger& logger) {
 
         IntegrationTestHelper::wait_for_transmission_complete(sender, receiver, 5000);
 
-        // После успешной передачи номера должны измениться
-        int final_sender_seq = sender.getCurrentSeqNumber();
+        int final_sender_seq = sender.getCurrentSeqNumber(); // После успешной передачи номера должны измениться
         int final_receiver_seq = receiver.getExpectedSeqNumber();
 
         runner.assert_test(final_sender_seq != initial_sender_seq ||
@@ -481,8 +466,8 @@ void test_sender_receiver_synchronization(TestRunner& runner, Logger& logger) {
 void test_protocol_under_high_loss_conditions(TestRunner& runner, Logger& logger) {
     logger.logDetailed("Тест: Протокол в условиях высоких потерь");
 
-    Channel channel(0.9f); // 90% вероятность потерь
-    Sender sender(channel, 400); // Короткий таймаут для быстрого восстановления
+    Channel channel(0.9f);
+    Sender sender(channel, 400);
     Receiver receiver(channel);
 
     sender.start();
@@ -540,16 +525,15 @@ void test_concurrent_operations(TestRunner& runner, Logger& logger) {
     // Тестируем отправку сообщения, пока предыдущее еще передается
     sender.sendData("First message");
 
-    // Небольшая задержка, затем попытка отправить второе сообщение
     this_thread::sleep_for(chrono::milliseconds(100));
 
     bool sender_busy = !sender.isReady();
     runner.assert_test(sender_busy, "Отправитель занят во время передачи");
 
-    // Ждем завершения первой передачи
+    // Ждем конца первой передачи
     IntegrationTestHelper::wait_for_transmission_complete(sender, receiver, 5000);
 
-    // Теперь отправляем второе сообщение
+    // отправляем второе сообщение
     bool can_send_second = sender.isReady();
     runner.assert_test(can_send_second, "Можно отправить второе сообщение после первого");
 
@@ -564,10 +548,7 @@ void test_concurrent_operations(TestRunner& runner, Logger& logger) {
     receiver.stop();
 }
 
-// ============================================================================
-// ВСПОМОГАТЕЛЬНЫЕ ФУНКЦИИ
-// ============================================================================
-
+// Остальные функции
 bool IntegrationTestHelper::wait_for_transmission_complete(Sender& sender, Receiver& receiver,
     int timeout_ms) {
     auto start_time = chrono::steady_clock::now();
@@ -612,8 +593,6 @@ TransmissionStats IntegrationTestHelper::measure_transmission_performance(
 void IntegrationTestHelper::simulate_controlled_losses(Channel& channel,
     const vector<bool>& packet_loss_pattern,
     const vector<bool>& ack_loss_pattern) {
-    // Эта функция может быть расширена для более сложного контроля потерь
-    // Пока используем простое изменение вероятности
     float avg_packet_loss = 0.0f;
     for (bool loss : packet_loss_pattern) {
         if (loss) avg_packet_loss += 1.0f;
@@ -625,8 +604,6 @@ void IntegrationTestHelper::simulate_controlled_losses(Channel& channel,
 
 double IntegrationTestHelper::calculate_optimal_timeout(float loss_probability,
     int base_transmission_time_ms) {
-    // Простая эвристика для расчета оптимального таймаута
-    // В реальной системе это было бы более сложным алгоритмом
     double expected_retransmissions = loss_probability / (1.0 - loss_probability);
     return base_transmission_time_ms * (1.5 + expected_retransmissions * 0.5);
 }

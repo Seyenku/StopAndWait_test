@@ -51,7 +51,6 @@ public:
     void enableColorOutput(bool enable) { useColorOutput = enable; }
 };
 
-// Глобальные функции для совместимости
 void display_main_menu();
 void display_logging_menu(Logger& logger);
 int get_user_choice();

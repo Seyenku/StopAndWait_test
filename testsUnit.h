@@ -23,7 +23,7 @@ void test_receiver_initial_state(TestRunner& runner, Logger& logger);
 void test_receiver_state_transitions(TestRunner& runner, Logger& logger);
 void test_receiver_duplicate_detection(TestRunner& runner, Logger& logger);
 
-// Тесты структуры Acknowledgement
+// Тесты структуры Ack
 void test_acknowledgement_initialization(TestRunner& runner, Logger& logger);
 
 // Тесты канала (Channel)

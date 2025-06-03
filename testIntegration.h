@@ -6,31 +6,29 @@
 #include "logger.h"
 #include "test_runner.h"
 
-// ============================================================================
 // ИНТЕГРАЦИОННЫЕ/СИСТЕМНЫЕ ТЕСТЫ
-// ============================================================================
 
-// 1. Успешная передача без потерь
+// 1. усмпешная передача без потерь
 void test_successful_single_packet_transmission(TestRunner& runner, Logger& logger);
 void test_successful_multiple_packets_transmission(TestRunner& runner, Logger& logger);
 
-// 2. Передача с потерей пакетов и ACK
+// 2. передача с потерей пакетов и ACK
 void test_packet_loss_with_retransmission(TestRunner& runner, Logger& logger);
 void test_ack_loss_with_retransmission(TestRunner& runner, Logger& logger);
 void test_multiple_losses_with_retransmission(TestRunner& runner, Logger& logger);
 void test_alternating_packet_ack_loss(TestRunner& runner, Logger& logger);
 
-// 3. Тесты с различными таймаутами
+// 3. тесты с различными таймаутами
 void test_very_short_timeout(TestRunner& runner, Logger& logger);
 void test_very_long_timeout(TestRunner& runner, Logger& logger);
 void test_optimal_timeout_determination(TestRunner& runner, Logger& logger);
 
-// 4. Дополнительные сценарии
+// 4. другие сценарии
 void test_sender_receiver_synchronization(TestRunner& runner, Logger& logger);
 void test_protocol_under_high_loss_conditions(TestRunner& runner, Logger& logger);
 void test_concurrent_operations(TestRunner& runner, Logger& logger);
 
-// Вспомогательные функции для интеграционных тестов
+// другие функции
 struct TransmissionStats {
     int packets_sent;
     int packets_received;
@@ -61,4 +59,4 @@ public:
         int base_transmission_time_ms);
 };
 
-#endif // TESTS_INTEGRATION_H
+#endif
